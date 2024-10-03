@@ -69,6 +69,29 @@ def dap_log_file(dap_logs_dir):
     yield filename
 
 
+@pytest.fixture(autouse=True)
+def _check_error_in_callback():
+    from robotframework_debug_adapter.listeners import _Callback
+
+    prev = _Callback.on_exception
+
+    found = []
+
+    def on_exception(*args, **kwargs):
+        import traceback
+        from io import StringIO
+
+        s = StringIO()
+        traceback.print_exc(file=s)
+        found.append(s.getvalue())
+
+    _Callback.on_exception = on_exception
+    yield
+    _Callback.on_exception = prev
+
+    assert not found
+
+
 @pytest.fixture
 def dap_process_stderr_file(dap_logs_dir):
     filename = str(dap_logs_dir.join("robotframework_dap_tests_stderr.log"))
@@ -259,14 +282,30 @@ class _DebuggerAPI(object):
         from robocorp_ls_core.debug_adapter_core.dap.dap_schema import ContinueArguments
         from robocorp_ls_core.debug_adapter_core.dap.dap_schema import ContinueResponse
         from robocorp_ls_core.debug_adapter_core.dap.dap_schema import TerminatedEvent
+        from robocorp_ls_core.debug_adapter_core.dap.dap_schema import ContinuedEvent
 
         arguments = ContinueArguments(thread_id)
         self.write(ContinueRequest(arguments))
         expected = [ContinueResponse]
+        expected.extend(additional_accepted)
+
         if accept_terminated:
             expected.append(TerminatedEvent)
-        expected.extend(additional_accepted)
-        return self.read(expect_class=tuple(expected))
+            expected.append(ContinuedEvent)
+
+            continued_response = None
+            terminated_event = None
+            while continued_response is None or terminated_event is None:
+                msg = self.read(expect_class=tuple(expected))
+                if isinstance(msg, ContinueResponse):
+                    continued_response = msg
+                elif isinstance(msg, TerminatedEvent):
+                    terminated_event = msg
+
+            return continued_response
+        else:
+            msg = self.read(expect_class=tuple(expected))
+            return msg
 
     def launch(
         self,
@@ -550,12 +589,13 @@ class _DebuggerAPI(object):
             )
         )
         eval_response = self.wait_for_response(eval_request)
-        assert (
-            eval_response.success == success
-        ), "Expected success to be: %s (found: %s).\nMessage:\n%s" % (
-            success,
-            eval_response.success,
-            eval_response.to_dict(),
+        assert eval_response.success == success, (
+            "Expected success to be: %s (found: %s).\nMessage:\n%s"
+            % (
+                success,
+                eval_response.success,
+                eval_response.to_dict(),
+            )
         )
         return eval_response
 
@@ -564,11 +604,11 @@ class _DebuggerAPI(object):
 def dap_resources_dir(tmpdir_factory):
     from robocorp_ls_core.copytree import copytree_dst_exists
 
-    basename = u"dap áéíóú"
+    basename = "dap áéíóú"
     copy_to = str(tmpdir_factory.mktemp(basename))
 
     f = __file__
-    original_resources_dir = os.path.join(os.path.dirname(f), u"_dap_resources")
+    original_resources_dir = os.path.join(os.path.dirname(f), "_dap_resources")
     assert os.path.exists(original_resources_dir)
 
     copytree_dst_exists(original_resources_dir, copy_to)
@@ -584,7 +624,6 @@ def debugger_api_core(dap_resources_dir):
 
 @pytest.fixture
 def debugger_api(dap_process, dap_resources_dir):
-
     from robocorp_ls_core.debug_adapter_core.debug_adapter_threads import writer_thread
     from robocorp_ls_core.debug_adapter_core.debug_adapter_threads import reader_thread
 

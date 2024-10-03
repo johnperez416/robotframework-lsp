@@ -43,6 +43,7 @@ from robotframework_ls.impl.protocols import (
     IVariableImportNode,
     VarTokenInfo,
     IVariablesFromArgumentsFileLoader,
+    IVariablesFromVariablesFileLoader,
     IVariableFound,
     NodeInfo,
     ISymbolsCacheReverseIndex,
@@ -92,7 +93,6 @@ class BaseContext(object):
 
 
 class CompletionContext(object):
-
     TYPE_TEST_CASE = RobotDocument.TYPE_TEST_CASE
     TYPE_INIT = RobotDocument.TYPE_INIT
     TYPE_RESOURCE = RobotDocument.TYPE_RESOURCE
@@ -109,21 +109,26 @@ class CompletionContext(object):
         variables_from_arguments_files_loader: Sequence[
             IVariablesFromArgumentsFileLoader
         ] = (),
+        variables_from_variables_files_loader: Sequence[
+            IVariablesFromVariablesFileLoader
+        ] = (),
         lsp_messages: Optional[LSPMessages] = None,
         tracing: bool = False,
     ) -> None:
         if col is Sentinel.SENTINEL or line is Sentinel.SENTINEL:
-            assert (
-                col is Sentinel.SENTINEL
-            ), "Either line and col are not set, or both are set. Found: (%s, %s)" % (
-                line,
-                col,
+            assert col is Sentinel.SENTINEL, (
+                "Either line and col are not set, or both are set. Found: (%s, %s)"
+                % (
+                    line,
+                    col,
+                )
             )
-            assert (
-                line is Sentinel.SENTINEL
-            ), "Either line and col are not set, or both are set. Found: (%s, %s)" % (
-                line,
-                col,
+            assert line is Sentinel.SENTINEL, (
+                "Either line and col are not set, or both are set. Found: (%s, %s)"
+                % (
+                    line,
+                    col,
+                )
             )
 
             # If both are not set, use the doc len as the selection.
@@ -154,6 +159,9 @@ class CompletionContext(object):
         ] = {}
         self.variables_from_arguments_files_loader = (
             variables_from_arguments_files_loader
+        )
+        self.variables_from_variables_files_loader = (
+            variables_from_variables_files_loader
         )
 
     def __str__(self):
@@ -227,6 +235,7 @@ class CompletionContext(object):
             memo=self._memo,
             monitor=self._monitor,
             variables_from_arguments_files_loader=self.variables_from_arguments_files_loader,
+            variables_from_variables_files_loader=self.variables_from_variables_files_loader,
             lsp_messages=self.lsp_messages,
         )
         ctx._original_ctx = self
@@ -400,6 +409,22 @@ class CompletionContext(object):
             return ret
 
         for c in self.variables_from_arguments_files_loader:
+            for variable in c.get_variables():
+                ret[normalize_robot_name(variable.variable_name)] = variable
+
+        return ret
+
+    def get_variables_files_normalized_var_name_to_var_found(
+        self,
+    ) -> Dict[str, IVariableFound]:
+        from robotframework_ls.impl.text_utilities import normalize_robot_name
+
+        ret: Dict[str, IVariableFound] = {}
+
+        if not self.variables_from_variables_files_loader:
+            return ret
+
+        for c in self.variables_from_variables_files_loader:
             for variable in c.get_variables():
                 ret[normalize_robot_name(variable.variable_name)] = variable
 

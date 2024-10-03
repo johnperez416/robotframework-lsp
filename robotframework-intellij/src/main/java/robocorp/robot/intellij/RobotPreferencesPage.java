@@ -27,9 +27,12 @@ class RobotPreferencesComponent {
     private final JBTextField robotPythonEnv = new JBTextField();
     private final JBTextField robotVariables = new JBTextField();
     private final JBTextField robotLoadVariablesFromArgumentsFile = new JBTextField();
+    private final JBTextField robotLoadVariablesFromVariablesFile = new JBTextField();
     private final JBTextField robotPythonpath = new JBTextField();
     private final JBTextField robotLibrariesLibdocNeedsArgs = new JBTextField();
     private final JBTextField robotLibrariesLibdocPreGenerate = new JBTextField();
+    private final JBTextField robotLibrariesBlacklist = new JBTextField();
+    private final JBTextField robotLibrariesDeprecated = new JBTextField();
     private final JBTextField robotCodeFormatter = new JBTextField();
     private final JBTextField robotFlowExplorerTheme = new JBTextField();
     private final JBTextField robotLintRobocopEnabled = new JBTextField();
@@ -54,6 +57,13 @@ class RobotPreferencesComponent {
     private final JBTextField robotWorkspaceSymbolsOnlyForOpenDocs = new JBTextField();
     private final JBTextField robotQuickFixKeywordTemplate = new JBTextField();
     private final JBTextField robotLanguage = new JBTextField();
+    private final JBTextField robotTimeoutUse = new JBTextField();
+    private final JBTextField robotTimeoutGeneral = new JBTextField();
+    private final JBTextField robotTimeoutCompletions = new JBTextField();
+    private final JBTextField robotTimeoutCodeFormatting = new JBTextField();
+    private final JBTextField robotTimeoutCollectDocsTimeout = new JBTextField();
+    private final JBTextField robotTimeoutListTestsTimeout = new JBTextField();
+    private final JBTextField robotTestViewEnabled = new JBTextField();
 
     public RobotPreferencesComponent() {
         panel = FormBuilder.createFormBuilder()
@@ -71,12 +81,18 @@ class RobotPreferencesComponent {
                 .addComponent(createJTextArea("Custom variables passed to RobotFramework\n(used when resolving variables and automatically passed to the launch config as --variable entries).\n(i.e.: {\"EXECDIR\": \"c:/my/proj/src\"})\nNote: expected format: JSON Object\n"))
                 .addLabeledComponent(new JBLabel("Load Variables From Arguments File"), robotLoadVariablesFromArgumentsFile, 1, false)
                 .addComponent(createJTextArea("Load variables for code-completion and code-analysis based on an arguments file. Multiple files\naccepted by separating with a comma.\n"))
+                .addLabeledComponent(new JBLabel("Load Variables From Variables File"), robotLoadVariablesFromVariablesFile, 1, false)
+                .addComponent(createJTextArea("Load variables for code-completion and code-analysis based on an variables file. Multiple files\naccepted by separating with a comma.\n"))
                 .addLabeledComponent(new JBLabel("Pythonpath"), robotPythonpath, 1, false)
                 .addComponent(createJTextArea("Entries to be added to the PYTHONPATH\n(used when resolving resources and imports and automatically passed to the launch config as\n--pythonpath entries).\n(i.e.: [\"c:/my/pro/src\"])\nNote: expected format: JSON Array\n"))
                 .addLabeledComponent(new JBLabel("Libraries Libdoc Needs Args"), robotLibrariesLibdocNeedsArgs, 1, false)
                 .addComponent(createJTextArea("Libraries which will generate a different set of keywords based on the arguments provided.\n(i.e.: [\"remote\", \"fakerlib\"])\nNote: expected format: JSON Array\n"))
                 .addLabeledComponent(new JBLabel("Libraries Libdoc Pre Generate"), robotLibrariesLibdocPreGenerate, 1, false)
                 .addComponent(createJTextArea("List of libraries which should have the libspec pre-generated.\nNote: expected format: JSON Array\n"))
+                .addLabeledComponent(new JBLabel("Libraries Blacklist"), robotLibrariesBlacklist, 1, false)
+                .addComponent(createJTextArea("List of libraries which should be blacklisted and not shown for code-completion.\nNote: expected format: JSON Array\n"))
+                .addLabeledComponent(new JBLabel("Libraries Deprecated"), robotLibrariesDeprecated, 1, false)
+                .addComponent(createJTextArea("List of libraries which should be deprecated and not shown for auto-import code-completion.\nNote: expected format: JSON Array\n"))
                 .addLabeledComponent(new JBLabel("Code Formatter"), robotCodeFormatter, 1, false)
                 .addComponent(createJTextArea("Allows the configuration of the code-formatter engine to be used. One of: robotidy, builtinTidy.\n"))
                 .addLabeledComponent(new JBLabel("Flow Explorer Theme"), robotFlowExplorerTheme, 1, false)
@@ -125,6 +141,20 @@ class RobotPreferencesComponent {
                 .addComponent(createJTextArea("The template to be used for keyword creation in quick fixes.\n"))
                 .addLabeledComponent(new JBLabel("Language"), robotLanguage, 1, false)
                 .addComponent(createJTextArea("Language(s) to be used in Robot Framework\n(passed as the --language argument for robot when launching).\nNote: expected format: JSON Array\n"))
+                .addLabeledComponent(new JBLabel("Timeout Use"), robotTimeoutUse, 1, false)
+                .addComponent(createJTextArea("Determines whether timeouts should be used or not in the language server\n(consider disabling timeouts on really slow machines).\nNote: expected 'true' or 'false'\n"))
+                .addLabeledComponent(new JBLabel("Timeout General"), robotTimeoutGeneral, 1, false)
+                .addComponent(createJTextArea("This is the timeout used for most requests in the language server. Set to 0 to disable it.\n"))
+                .addLabeledComponent(new JBLabel("Timeout Completions"), robotTimeoutCompletions, 1, false)
+                .addComponent(createJTextArea("This is the timeout used for code completion requests. Set to 0 to disable it.\n"))
+                .addLabeledComponent(new JBLabel("Timeout Code Formatting"), robotTimeoutCodeFormatting, 1, false)
+                .addComponent(createJTextArea("This is the timeout used for code formatting requests. Set to 0 to disable it.\n"))
+                .addLabeledComponent(new JBLabel("Timeout Collect Docs Timeout"), robotTimeoutCollectDocsTimeout, 1, false)
+                .addComponent(createJTextArea("This is the timeout used for collecting documentation to show in the ROBOT DOCUMENTATION view. Set\nto 0 to disable it.\n"))
+                .addLabeledComponent(new JBLabel("Timeout List Tests Timeout"), robotTimeoutListTestsTimeout, 1, false)
+                .addComponent(createJTextArea("This is the timeout used for listing the tests from a robot file. Set to 0 to disable it.\n"))
+                .addLabeledComponent(new JBLabel("Test View Enabled"), robotTestViewEnabled, 1, false)
+                .addComponent(createJTextArea("Whether to show robot tests in the test view. You may want to disable this if you are using another\ntest runner\n(eg. https://github.com/DetachHead/pytest-robotframework)\nNote: expected 'true' or 'false'\n"))
                 
                 .addComponentFillVertically(new JPanel(), 0)
                 .getPanel();
@@ -213,6 +243,15 @@ class RobotPreferencesComponent {
     }
     
     @NotNull
+    public String getRobotLoadVariablesFromVariablesFile() {
+        return robotLoadVariablesFromVariablesFile.getText();
+    }
+
+    public void setRobotLoadVariablesFromVariablesFile (@NotNull String newText) {
+        robotLoadVariablesFromVariablesFile.setText(newText);
+    }
+    
+    @NotNull
     public String getRobotPythonpath() {
         return robotPythonpath.getText();
     }
@@ -237,6 +276,24 @@ class RobotPreferencesComponent {
 
     public void setRobotLibrariesLibdocPreGenerate (@NotNull String newText) {
         robotLibrariesLibdocPreGenerate.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotLibrariesBlacklist() {
+        return robotLibrariesBlacklist.getText();
+    }
+
+    public void setRobotLibrariesBlacklist (@NotNull String newText) {
+        robotLibrariesBlacklist.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotLibrariesDeprecated() {
+        return robotLibrariesDeprecated.getText();
+    }
+
+    public void setRobotLibrariesDeprecated (@NotNull String newText) {
+        robotLibrariesDeprecated.setText(newText);
     }
     
     @NotNull
@@ -455,6 +512,69 @@ class RobotPreferencesComponent {
         robotLanguage.setText(newText);
     }
     
+    @NotNull
+    public String getRobotTimeoutUse() {
+        return robotTimeoutUse.getText();
+    }
+
+    public void setRobotTimeoutUse (@NotNull String newText) {
+        robotTimeoutUse.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotTimeoutGeneral() {
+        return robotTimeoutGeneral.getText();
+    }
+
+    public void setRobotTimeoutGeneral (@NotNull String newText) {
+        robotTimeoutGeneral.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotTimeoutCompletions() {
+        return robotTimeoutCompletions.getText();
+    }
+
+    public void setRobotTimeoutCompletions (@NotNull String newText) {
+        robotTimeoutCompletions.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotTimeoutCodeFormatting() {
+        return robotTimeoutCodeFormatting.getText();
+    }
+
+    public void setRobotTimeoutCodeFormatting (@NotNull String newText) {
+        robotTimeoutCodeFormatting.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotTimeoutCollectDocsTimeout() {
+        return robotTimeoutCollectDocsTimeout.getText();
+    }
+
+    public void setRobotTimeoutCollectDocsTimeout (@NotNull String newText) {
+        robotTimeoutCollectDocsTimeout.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotTimeoutListTestsTimeout() {
+        return robotTimeoutListTestsTimeout.getText();
+    }
+
+    public void setRobotTimeoutListTestsTimeout (@NotNull String newText) {
+        robotTimeoutListTestsTimeout.setText(newText);
+    }
+    
+    @NotNull
+    public String getRobotTestViewEnabled() {
+        return robotTestViewEnabled.getText();
+    }
+
+    public void setRobotTestViewEnabled (@NotNull String newText) {
+        robotTestViewEnabled.setText(newText);
+    }
+    
 
 }
 
@@ -516,6 +636,10 @@ public class RobotPreferencesPage implements Configurable {
             return true;
         }
         
+        if(!settings.getRobotLoadVariablesFromVariablesFile().equals(component.getRobotLoadVariablesFromVariablesFile())){
+            return true;
+        }
+        
         if(!settings.getRobotPythonpath().equals(component.getRobotPythonpath())){
             return true;
         }
@@ -525,6 +649,14 @@ public class RobotPreferencesPage implements Configurable {
         }
         
         if(!settings.getRobotLibrariesLibdocPreGenerate().equals(component.getRobotLibrariesLibdocPreGenerate())){
+            return true;
+        }
+        
+        if(!settings.getRobotLibrariesBlacklist().equals(component.getRobotLibrariesBlacklist())){
+            return true;
+        }
+        
+        if(!settings.getRobotLibrariesDeprecated().equals(component.getRobotLibrariesDeprecated())){
             return true;
         }
         
@@ -624,6 +756,34 @@ public class RobotPreferencesPage implements Configurable {
             return true;
         }
         
+        if(!settings.getRobotTimeoutUse().equals(component.getRobotTimeoutUse())){
+            return true;
+        }
+        
+        if(!settings.getRobotTimeoutGeneral().equals(component.getRobotTimeoutGeneral())){
+            return true;
+        }
+        
+        if(!settings.getRobotTimeoutCompletions().equals(component.getRobotTimeoutCompletions())){
+            return true;
+        }
+        
+        if(!settings.getRobotTimeoutCodeFormatting().equals(component.getRobotTimeoutCodeFormatting())){
+            return true;
+        }
+        
+        if(!settings.getRobotTimeoutCollectDocsTimeout().equals(component.getRobotTimeoutCollectDocsTimeout())){
+            return true;
+        }
+        
+        if(!settings.getRobotTimeoutListTestsTimeout().equals(component.getRobotTimeoutListTestsTimeout())){
+            return true;
+        }
+        
+        if(!settings.getRobotTestViewEnabled().equals(component.getRobotTestViewEnabled())){
+            return true;
+        }
+        
         return false;
     }
 
@@ -643,9 +803,12 @@ public class RobotPreferencesPage implements Configurable {
         component.setRobotPythonEnv(settings.getRobotPythonEnv());
         component.setRobotVariables(settings.getRobotVariables());
         component.setRobotLoadVariablesFromArgumentsFile(settings.getRobotLoadVariablesFromArgumentsFile());
+        component.setRobotLoadVariablesFromVariablesFile(settings.getRobotLoadVariablesFromVariablesFile());
         component.setRobotPythonpath(settings.getRobotPythonpath());
         component.setRobotLibrariesLibdocNeedsArgs(settings.getRobotLibrariesLibdocNeedsArgs());
         component.setRobotLibrariesLibdocPreGenerate(settings.getRobotLibrariesLibdocPreGenerate());
+        component.setRobotLibrariesBlacklist(settings.getRobotLibrariesBlacklist());
+        component.setRobotLibrariesDeprecated(settings.getRobotLibrariesDeprecated());
         component.setRobotCodeFormatter(settings.getRobotCodeFormatter());
         component.setRobotFlowExplorerTheme(settings.getRobotFlowExplorerTheme());
         component.setRobotLintRobocopEnabled(settings.getRobotLintRobocopEnabled());
@@ -670,6 +833,13 @@ public class RobotPreferencesPage implements Configurable {
         component.setRobotWorkspaceSymbolsOnlyForOpenDocs(settings.getRobotWorkspaceSymbolsOnlyForOpenDocs());
         component.setRobotQuickFixKeywordTemplate(settings.getRobotQuickFixKeywordTemplate());
         component.setRobotLanguage(settings.getRobotLanguage());
+        component.setRobotTimeoutUse(settings.getRobotTimeoutUse());
+        component.setRobotTimeoutGeneral(settings.getRobotTimeoutGeneral());
+        component.setRobotTimeoutCompletions(settings.getRobotTimeoutCompletions());
+        component.setRobotTimeoutCodeFormatting(settings.getRobotTimeoutCodeFormatting());
+        component.setRobotTimeoutCollectDocsTimeout(settings.getRobotTimeoutCollectDocsTimeout());
+        component.setRobotTimeoutListTestsTimeout(settings.getRobotTimeoutListTestsTimeout());
+        component.setRobotTestViewEnabled(settings.getRobotTestViewEnabled());
     }
 
     @Override
@@ -710,6 +880,10 @@ public class RobotPreferencesPage implements Configurable {
         if(!s.isEmpty()) {
             throw new ConfigurationException("Error in Load Variables From Arguments File:\n" + s);
         }
+        s = settings.validateRobotLoadVariablesFromVariablesFile(component.getRobotLoadVariablesFromVariablesFile());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Load Variables From Variables File:\n" + s);
+        }
         s = settings.validateRobotPythonpath(component.getRobotPythonpath());
         if(!s.isEmpty()) {
             throw new ConfigurationException("Error in Pythonpath:\n" + s);
@@ -721,6 +895,14 @@ public class RobotPreferencesPage implements Configurable {
         s = settings.validateRobotLibrariesLibdocPreGenerate(component.getRobotLibrariesLibdocPreGenerate());
         if(!s.isEmpty()) {
             throw new ConfigurationException("Error in Libraries Libdoc Pre Generate:\n" + s);
+        }
+        s = settings.validateRobotLibrariesBlacklist(component.getRobotLibrariesBlacklist());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Libraries Blacklist:\n" + s);
+        }
+        s = settings.validateRobotLibrariesDeprecated(component.getRobotLibrariesDeprecated());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Libraries Deprecated:\n" + s);
         }
         s = settings.validateRobotCodeFormatter(component.getRobotCodeFormatter());
         if(!s.isEmpty()) {
@@ -818,6 +1000,34 @@ public class RobotPreferencesPage implements Configurable {
         if(!s.isEmpty()) {
             throw new ConfigurationException("Error in Language:\n" + s);
         }
+        s = settings.validateRobotTimeoutUse(component.getRobotTimeoutUse());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Timeout Use:\n" + s);
+        }
+        s = settings.validateRobotTimeoutGeneral(component.getRobotTimeoutGeneral());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Timeout General:\n" + s);
+        }
+        s = settings.validateRobotTimeoutCompletions(component.getRobotTimeoutCompletions());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Timeout Completions:\n" + s);
+        }
+        s = settings.validateRobotTimeoutCodeFormatting(component.getRobotTimeoutCodeFormatting());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Timeout Code Formatting:\n" + s);
+        }
+        s = settings.validateRobotTimeoutCollectDocsTimeout(component.getRobotTimeoutCollectDocsTimeout());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Timeout Collect Docs Timeout:\n" + s);
+        }
+        s = settings.validateRobotTimeoutListTestsTimeout(component.getRobotTimeoutListTestsTimeout());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Timeout List Tests Timeout:\n" + s);
+        }
+        s = settings.validateRobotTestViewEnabled(component.getRobotTestViewEnabled());
+        if(!s.isEmpty()) {
+            throw new ConfigurationException("Error in Test View Enabled:\n" + s);
+        }
         
         settings.setRobotLanguageServerPython(component.getRobotLanguageServerPython());
         settings.setRobotLanguageServerArgs(component.getRobotLanguageServerArgs());
@@ -826,9 +1036,12 @@ public class RobotPreferencesPage implements Configurable {
         settings.setRobotPythonEnv(component.getRobotPythonEnv());
         settings.setRobotVariables(component.getRobotVariables());
         settings.setRobotLoadVariablesFromArgumentsFile(component.getRobotLoadVariablesFromArgumentsFile());
+        settings.setRobotLoadVariablesFromVariablesFile(component.getRobotLoadVariablesFromVariablesFile());
         settings.setRobotPythonpath(component.getRobotPythonpath());
         settings.setRobotLibrariesLibdocNeedsArgs(component.getRobotLibrariesLibdocNeedsArgs());
         settings.setRobotLibrariesLibdocPreGenerate(component.getRobotLibrariesLibdocPreGenerate());
+        settings.setRobotLibrariesBlacklist(component.getRobotLibrariesBlacklist());
+        settings.setRobotLibrariesDeprecated(component.getRobotLibrariesDeprecated());
         settings.setRobotCodeFormatter(component.getRobotCodeFormatter());
         settings.setRobotFlowExplorerTheme(component.getRobotFlowExplorerTheme());
         settings.setRobotLintRobocopEnabled(component.getRobotLintRobocopEnabled());
@@ -853,5 +1066,12 @@ public class RobotPreferencesPage implements Configurable {
         settings.setRobotWorkspaceSymbolsOnlyForOpenDocs(component.getRobotWorkspaceSymbolsOnlyForOpenDocs());
         settings.setRobotQuickFixKeywordTemplate(component.getRobotQuickFixKeywordTemplate());
         settings.setRobotLanguage(component.getRobotLanguage());
+        settings.setRobotTimeoutUse(component.getRobotTimeoutUse());
+        settings.setRobotTimeoutGeneral(component.getRobotTimeoutGeneral());
+        settings.setRobotTimeoutCompletions(component.getRobotTimeoutCompletions());
+        settings.setRobotTimeoutCodeFormatting(component.getRobotTimeoutCodeFormatting());
+        settings.setRobotTimeoutCollectDocsTimeout(component.getRobotTimeoutCollectDocsTimeout());
+        settings.setRobotTimeoutListTestsTimeout(component.getRobotTimeoutListTestsTimeout());
+        settings.setRobotTestViewEnabled(component.getRobotTestViewEnabled());
     }
 }

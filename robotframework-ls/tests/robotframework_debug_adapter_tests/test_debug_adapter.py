@@ -44,7 +44,6 @@ def test_invalid_launch_1(debugger_api: _DebuggerAPI):
 
 
 def test_invalid_launch_2(debugger_api: _DebuggerAPI):
-
     debugger_api.initialize()
 
     debugger_api.launch("invalid_file.robot", debug=False, success=False)
@@ -78,9 +77,7 @@ def test_error_handling(debugger_api: _DebuggerAPI):
 
     json_hit = debugger_api.wait_for_thread_stopped()
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_simple_launch(debugger_api: _DebuggerAPI):
@@ -140,9 +137,7 @@ def test_simple_debug_launch_stop_on_robot(debugger_api: _DebuggerAPI):
     json_hit = debugger_api.wait_for_thread_stopped(file="case_log.robot")
     assert json_hit.thread_id == thread["id"]
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_simple_debug_launch_stop_on_pydevd(debugger_api: _DebuggerAPI):
@@ -163,9 +158,7 @@ def test_simple_debug_launch_stop_on_pydevd(debugger_api: _DebuggerAPI):
 
     json_hit = debugger_api.wait_for_thread_stopped(file="mypylib.py")
 
-    msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_launch_pydevd_change_breakpoints(debugger_api: _DebuggerAPI):
@@ -188,9 +181,7 @@ def test_launch_pydevd_change_breakpoints(debugger_api: _DebuggerAPI):
     json_hit = debugger_api.wait_for_thread_stopped(file="mypylib.py", line=bp1)
     debugger_api.set_breakpoints(mypylib, [])
 
-    msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_simple_debug_launch_stop_on_robot_and_pydevd(debugger_api: _DebuggerAPI):
@@ -223,14 +214,7 @@ def test_simple_debug_launch_stop_on_robot_and_pydevd(debugger_api: _DebuggerAPI
     if not isinstance(msg, StoppedEvent):
         debugger_api.wait_for_thread_stopped(file="mypylib.py")
 
-    msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-
-    if not isinstance(msg, TerminatedEvent):
-        # If we read Stopped before Continued, we may read a 2nd continued at this point.
-        msg = debugger_api.read((TerminatedEvent, ContinuedEvent))
-
-        if not isinstance(msg, TerminatedEvent):
-            msg = debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_step_in(debugger_api: _DebuggerAPI):
@@ -252,9 +236,7 @@ def test_step_in(debugger_api: _DebuggerAPI):
 
     json_hit = debugger_api.wait_for_thread_stopped("step", name="Should Be Equal")
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def format_stack_frames(stack_frames):
@@ -305,9 +287,7 @@ def test_debugger_for_workflow(debugger_api, data_regression):
         basename="test_debugger_for_workflow_step_in" + suffix,
     )
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_step_next(debugger_api: _DebuggerAPI):
@@ -331,9 +311,7 @@ def test_step_next(debugger_api: _DebuggerAPI):
         "step", name="Yet Another Equal Redefined"
     )
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_invalid_launch_just_with_args_no_cwd(debugger_api: _DebuggerAPI):
@@ -366,8 +344,7 @@ def test_launch_just_with_args(debugger_api: _DebuggerAPI):
         "step", name="Yet Another Equal Redefined"
     )
 
-    debugger_api.continue_event(json_hit.thread_id)
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_stop_on_condition(debugger_api: _DebuggerAPI):
@@ -392,8 +369,6 @@ def test_stop_on_condition(debugger_api: _DebuggerAPI):
     assert name_to_var["'${counter}'"].value == "2"
 
     msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
 
 
 def test_stop_on_hit_condition(debugger_api: _DebuggerAPI):
@@ -418,8 +393,6 @@ def test_stop_on_hit_condition(debugger_api: _DebuggerAPI):
     assert name_to_var["'${counter}'"].value == "2"
 
     msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
 
 
 def test_log_on_breakpoint(debugger_api: _DebuggerAPI):
@@ -470,9 +443,7 @@ def test_break_on_init(debugger_api: _DebuggerAPI):
     debugger_api.continue_event(json_hit.thread_id)
 
     json_hit = debugger_api.wait_for_thread_stopped(file="__init__.robot")
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_init_auto_loaded(debugger_api: _DebuggerAPI):
@@ -497,9 +468,7 @@ def test_init_auto_loaded(debugger_api: _DebuggerAPI):
     debugger_api.continue_event(json_hit.thread_id)
 
     json_hit = debugger_api.wait_for_thread_stopped(file="check_init/__init__.robot")
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_sub_init_auto_loaded(debugger_api: _DebuggerAPI):
@@ -543,9 +512,7 @@ def test_sub_init_auto_loaded(debugger_api: _DebuggerAPI):
     json_hit = debugger_api.wait_for_thread_stopped(
         file="check_sub_init/__init__.robot"
     )
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_suite_with_prefix(debugger_api: _DebuggerAPI):
@@ -580,9 +547,7 @@ def test_suite_with_prefix(debugger_api: _DebuggerAPI):
     json_hit = debugger_api.wait_for_thread_stopped(
         file="check_suite_with_prefix/03__config/__init__.robot"
     )
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 @pytest.mark.parametrize("scenario", ["cwd", "suite_target"])
@@ -625,9 +590,7 @@ def test_sub_init_auto_loaded_not_complete(debugger_api: _DebuggerAPI, scenario)
     json_hit = debugger_api.wait_for_thread_stopped(
         file="check_sub_init2/__init__.robot"
     )
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_step_out(debugger_api: _DebuggerAPI):
@@ -651,9 +614,7 @@ def test_step_out(debugger_api: _DebuggerAPI):
         "step", name="Yet Another Equal Redefined"
     )
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_failure(debugger_api: _DebuggerAPI):
@@ -682,9 +643,7 @@ def test_failure(debugger_api: _DebuggerAPI):
         "TestCase: Check failure",
         "TestSuite: Case Failure",
     ]
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_import_failure(debugger_api: _DebuggerAPI):
@@ -707,9 +666,7 @@ def test_import_failure(debugger_api: _DebuggerAPI):
         name="Log (ERROR)", reason="exception", file="case_import_failure.robot"
     )
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_variables(debugger_api: _DebuggerAPI):
@@ -753,9 +710,7 @@ def test_variables(debugger_api: _DebuggerAPI):
     )
     assert "'${arg1}'" not in name_to_var and "u'${arg1}'" not in name_to_var
 
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_launch_in_external_terminal(debugger_api: _DebuggerAPI):
@@ -831,9 +786,7 @@ def test_evaluate(debugger_api: _DebuggerAPI):
         "${arg1}", frameId=json_hit.frame_id, context="watch"
     )
     assert response.body.result in ("['2', '2']", "[u'2', u'2']")
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_evaluate_assign(debugger_api: _DebuggerAPI):
@@ -862,9 +815,7 @@ def test_evaluate_assign(debugger_api: _DebuggerAPI):
         "${lst}", frameId=json_hit.frame_id, context="watch"
     )
     assert response.body.result == "['a', 'b']"
-    debugger_api.continue_event(json_hit.thread_id)
-
-    debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_launch_multiple(debugger_api: _DebuggerAPI):
@@ -893,9 +844,6 @@ def test_launch_multiple(debugger_api: _DebuggerAPI):
 
     debugger_api.wait_for_thread_stopped(file="case_evaluate.robot")
     msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
 
 
 def test_launch_ignoring_tests(debugger_api: _DebuggerAPI):
@@ -928,10 +876,7 @@ def test_launch_ignoring_tests(debugger_api: _DebuggerAPI):
     debugger_api.configuration_done()
 
     json_hit = debugger_api.wait_for_thread_stopped(file="case_log.robot")
-    msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_launch_unicode(debugger_api: _DebuggerAPI):
@@ -956,10 +901,7 @@ def test_launch_unicode(debugger_api: _DebuggerAPI):
     debugger_api.configuration_done()
 
     json_hit = debugger_api.wait_for_thread_stopped(file="àèìòù.robot")
-    msg = debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
-
-    if not isinstance(msg, TerminatedEvent):
-        debugger_api.read(TerminatedEvent)
+    debugger_api.continue_event(json_hit.thread_id, accept_terminated=True)
 
 
 def test_failure_message_from_library(debugger_api: _DebuggerAPI):

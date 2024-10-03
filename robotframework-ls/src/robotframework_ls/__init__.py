@@ -1,4 +1,4 @@
-__version__ = "1.6.0"
+__version__ = "1.13.0"
 version_info = [int(x) for x in __version__.split(".")]
 
 import os.path
@@ -39,9 +39,9 @@ def import_robocorp_ls_core():
                     "Using vendored mode. Found: %s" % (vendored_folder,)
                 )
                 use_folder = vendored_folder
-                assert os.path.isdir(
-                    use_folder
-                ), "Expected: %s to exist and be a directory." % (use_folder,)
+                assert os.path.isdir(use_folder), (
+                    "Expected: %s to exist and be a directory." % (use_folder,)
+                )
 
             sys.path.append(use_folder)
             import robocorp_ls_core
